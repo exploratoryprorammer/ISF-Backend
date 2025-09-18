@@ -3,14 +3,12 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"net/http"
 	"time"
 
 	"go-rest-api/db"
 
 	"github.com/gorilla/mux"
-
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -35,7 +33,7 @@ func main() {
 }
 
 
-func GetUsers(w http.ResponseWriter, r *http.Request) {
+func GetClient(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -48,7 +46,7 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 
 
 	var users []User 
-	if err = cursor.All(ctx, &users); err != nul {
+	if err = cursor.All(ctx, &users); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return 
 	}
@@ -57,5 +55,21 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 
 }
 
+
+func CreateClient(w http.ResponseWriter, r *http.Request) {
+	var newUser User
+	_ = json.NewDecoder(r.Body).Decode(&newUser)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := userCollection.InsertOne(ctx, newUser)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(newUser)
+}
 
 
